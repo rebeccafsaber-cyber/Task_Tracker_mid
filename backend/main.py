@@ -1,4 +1,5 @@
 from datetime import date
+from enum import Enum
 from typing import List, Optional
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
@@ -15,16 +16,34 @@ app.add_middleware(
 )
 
 
+
+class TaskStatus(str, Enum):
+    TODO = "todo"
+    IN_PROGRESS = "in_progress"
+    DONE = "done"
+    CANCELED = "canceled"
+
+
+
+ALLOWED_TRANSITIONS = {
+    TaskStatus.TODO: [TaskStatus.IN_PROGRESS, TaskStatus.CANCELED],
+    TaskStatus.IN_PROGRESS: [TaskStatus.DONE, TaskStatus.TODO, TaskStatus.CANCELED],
+    TaskStatus.DONE: [TaskStatus.IN_PROGRESS],
+    TaskStatus.CANCELED: [TaskStatus.TODO],
+}
+
+
+
 class TodoItem(BaseModel):
-    task_id: int
+    id: int
     title: str
     notes: Optional[str] = None
-    is_done: bool = False
-    deadline: Optional[date] = None
-    categories: List[str] = Field(default_factory=list)
+    status: TaskStatus = TaskStatus.TODO
+    due_date: Optional[date] = None
+    tags: List[str] = Field(default_factory=list)
 
 
-# قاعدة بيانات مؤقتة بأسماء متغيرات مختلفة
+
 storage_db: List[TodoItem] = []
 
 
@@ -34,27 +53,27 @@ def home():
 
 
 @app.get("/tasks", response_model=List[TodoItem])
-def fetch_tasks(delayed: Optional[bool] = None, category: Optional[str] = None):
+def fetch_tasks(overdue: Optional[bool] = None, tag: Optional[str] = None):
     filtered_list = storage_db
     current_date = date.today()
 
-    if delayed is not None:
-        if delayed:
+    if overdue is not None:
+        if overdue:
             filtered_list = [
                 t
                 for t in filtered_list
-                if t.deadline and t.deadline < current_date and not t.is_done
+                if t.due_date and t.due_date < current_date and t.status != TaskStatus.DONE
             ]
         else:
             filtered_list = [
                 t
                 for t in filtered_list
-                if not t.deadline or t.deadline >= current_date or t.is_done
+                if not t.due_date or t.due_date >= current_date or t.status == TaskStatus.DONE
             ]
 
-    if category:
+    if tag:
         filtered_list = [
-            t for t in filtered_list if category in t.categories
+            t for t in filtered_list if tag in t.tags
         ]
 
     return filtered_list
@@ -63,7 +82,7 @@ def fetch_tasks(delayed: Optional[bool] = None, category: Optional[str] = None):
 @app.post("/tasks", response_model=TodoItem)
 def add_task(new_task: TodoItem):
     for existing in storage_db:
-        if existing.task_id == new_task.task_id:
+        if existing.id == new_task.id:
             raise HTTPException(
                 status_code=400, detail="Task ID already exists"
             )
@@ -74,16 +93,29 @@ def add_task(new_task: TodoItem):
 @app.put("/tasks/{task_id}", response_model=TodoItem)
 def modify_task(task_id: int, updated_task: TodoItem):
     for position, item in enumerate(storage_db):
-        if item.task_id == task_id:
+        if item.id == task_id:
+            current_status = item.status
+            new_status = updated_task.status
+
+            
+            if current_status != new_status:
+                allowed_next = ALLOWED_TRANSITIONS.get(current_status, [])
+                if new_status not in allowed_next:
+                    raise HTTPException(
+                        status_code=400,
+                        detail=f"Cannot transition status from '{current_status.value}' to '{new_status.value}'"
+                    )
+
             storage_db[position] = updated_task
             return updated_task
+
     raise HTTPException(status_code=404, detail="Task not found")
 
 
 @app.delete("/tasks/{task_id}")
 def remove_task(task_id: int):
     for position, item in enumerate(storage_db):
-        if item.task_id == task_id:
+        if item.id == task_id:
             storage_db.pop(position)
             return {"message": "Task successfully removed"}
     raise HTTPException(status_code=404, detail="Task not found")

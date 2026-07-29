@@ -19,3 +19,15 @@
 * **As a** user,
 * **I want to** remove tasks that are no longer relevant,
 * **So that** my task list remains clean and organized.
+
+## Mid-Course Features
+
+### Feature 1: Tag Filtering
+- **User Story:** As a user, I want to filter my tasks by specific tags so that I can view only the tasks relevant to a specific context.
+- **Acceptance Criteria:**
+  - Sending `GET /tasks?tag=work` returns only tasks containing "work" in their `tags` list.
+
+### Feature 2: Overdue Status Tracking
+- **User Story:** As a user, I want to filter tasks that are past their due date so that I can focus on overdue items.
+- **Acceptance Criteria:**
+  - Sending `GET /tasks?overdue=true` filters tasks where `due_date` is earlier than today and status is not `done`.

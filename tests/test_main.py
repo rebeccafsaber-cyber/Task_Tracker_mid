@@ -33,3 +33,45 @@ def test_get_tasks():
     response = client.get("/tasks/")
     assert response.status_code == 200
     assert isinstance(response.json(), list)
+
+
+def test_overdue_filter():
+    response = client.post(
+        "/tasks/",
+        json={
+            "title": "Overdue Test Task",
+            "description": "Testing overdue filter",
+            "due_date": "2020-01-01"
+        }
+    )
+
+    assert response.status_code == 201
+
+    response = client.get("/tasks/?overdue=true")
+
+    assert response.status_code == 200
+
+    tasks = response.json()
+
+    assert any(task["title"] == "Overdue Test Task" for task in tasks)
+
+def test_tag_filter():
+    response = client.post(
+        "/tasks/",
+        json={
+            "title": "Tagged Test Task",
+            "description": "Testing tag filter",
+            "due_date": "2026-12-31",
+            "tags": ["school"]
+        }
+    )
+
+    assert response.status_code == 201
+
+    response = client.get("/tasks/?tag=school")
+
+    assert response.status_code == 200
+
+    tasks = response.json()
+
+    assert any(task["title"] == "Tagged Test Task" for task in tasks)

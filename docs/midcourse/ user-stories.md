@@ -61,3 +61,15 @@
 
 4. **User Story (Corrected AI Assumption):** As a user, I want overdue filtering to dynamically compare against the current UTC date at request time.
    - **Corrected AI Assumption:** The AI initially assumed comparing due dates against a fixed hardcoded date string in the test suite. I corrected this to use dynamic real-time UTC date checks (`datetime.now(timezone.utc)`), preventing false test failures when run on different dates.
+  
+## Implemented Features
+
+### Feature 1: Overdue Filtering
+* **As a** user,
+* **I want to** filter my tasks to show only those that are past their due date,
+* **So that** I can quickly identify and prioritize urgent overdue items.
+
+### Feature 2: Tags / Labeling
+* **As a** user,
+* **I want to** add custom tags/labels to my tasks,
+* **So that** I can categorize and organize tasks based on topics or context.

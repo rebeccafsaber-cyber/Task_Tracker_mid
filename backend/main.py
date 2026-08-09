@@ -1,3 +1,4 @@
+
 from datetime import date
 from enum import Enum
 from typing import List, Optional
@@ -16,13 +17,11 @@ app.add_middleware(
 )
 
 
-
 class TaskStatus(str, Enum):
     TODO = "todo"
     IN_PROGRESS = "in_progress"
     DONE = "done"
     CANCELED = "canceled"
-
 
 
 ALLOWED_TRANSITIONS = {
@@ -31,7 +30,6 @@ ALLOWED_TRANSITIONS = {
     TaskStatus.DONE: [TaskStatus.IN_PROGRESS],
     TaskStatus.CANCELED: [TaskStatus.TODO],
 }
-
 
 
 class TodoItem(BaseModel):
@@ -43,6 +41,15 @@ class TodoItem(BaseModel):
     tags: List[str] = Field(default_factory=list)
 
 
+# نموذج لاستقبال بيانات إنشاء تاسك جديد (بدون الحاجة لـ ID إجباري)
+class TaskCreate(BaseModel):
+    title: str
+    description: Optional[str] = None
+    notes: Optional[str] = None
+    status: TaskStatus = TaskStatus.TODO
+    due_date: Optional[date] = None
+    tags: List[str] = Field(default_factory=list)
+
 
 storage_db: List[TodoItem] = []
 
@@ -53,6 +60,7 @@ def home():
 
 
 @app.get("/tasks", response_model=List[TodoItem])
+@app.get("/tasks/", response_model=List[TodoItem])
 def fetch_tasks(overdue: Optional[bool] = None, tag: Optional[str] = None):
     filtered_list = storage_db
     current_date = date.today()
@@ -79,25 +87,36 @@ def fetch_tasks(overdue: Optional[bool] = None, tag: Optional[str] = None):
     return filtered_list
 
 
-@app.post("/tasks", response_model=TodoItem)
-def add_task(new_task: TodoItem):
-    for existing in storage_db:
-        if existing.id == new_task.id:
-            raise HTTPException(
-                status_code=400, detail="Task ID already exists"
-            )
+@app.post("/tasks", response_model=TodoItem, status_code=201)
+@app.post("/tasks/", response_model=TodoItem, status_code=201)
+def add_task(task_in: TaskCreate):
+    # إنشاء ID تلقائياً
+    new_id = len(storage_db) + 1 if not storage_db else max(t.id for t in storage_db) + 1
+
+    # تحويل الوصف
+    task_notes = task_in.notes or task_in.description
+
+    new_task = TodoItem(
+        id=new_id,
+        title=task_in.title,
+        notes=task_notes,
+        status=task_in.status,
+        due_date=task_in.due_date,
+        tags=task_in.tags
+    )
+
     storage_db.append(new_task)
     return new_task
 
 
 @app.put("/tasks/{task_id}", response_model=TodoItem)
+@app.put("/tasks/{task_id}/", response_model=TodoItem)
 def modify_task(task_id: int, updated_task: TodoItem):
     for position, item in enumerate(storage_db):
         if item.id == task_id:
             current_status = item.status
             new_status = updated_task.status
 
-            
             if current_status != new_status:
                 allowed_next = ALLOWED_TRANSITIONS.get(current_status, [])
                 if new_status not in allowed_next:
@@ -113,6 +132,7 @@ def modify_task(task_id: int, updated_task: TodoItem):
 
 
 @app.delete("/tasks/{task_id}")
+@app.delete("/tasks/{task_id}/")
 def remove_task(task_id: int):
     for position, item in enumerate(storage_db):
         if item.id == task_id:

@@ -69,6 +69,29 @@
 * **I want to** filter my tasks to show only those that are past their due date,
 * **So that** I can quickly identify and prioritize urgent overdue items.
 
+
+  ## Overdue Task Filtering
+
+### User Story
+As a user, I want to filter my tasks to show only overdue tasks, so that I can quickly identify tasks that need immediate attention.
+
+### Acceptance Criteria
+- The user can filter the task list to show overdue tasks.
+- A task is considered overdue when its due date has passed and it has not been completed.
+- When the overdue filter is selected, only overdue tasks are displayed.
+- The user can remove the filter and return to the full task list.
+
+## Task Tags
+
+### User Story
+As a user, I want to add tags to my tasks, so that I can organize and categorize my tasks more easily.
+
+### Acceptance Criteria
+- The user can add a tag to a task.
+- The task displays its assigned tag.
+- The user can use tags to identify and organize tasks.
+- Tasks without tags can still be created and managed normally.
+
 ### Feature 2: Tags / Labeling
 * **As a** user,
 * **I want to** add custom tags/labels to my tasks,

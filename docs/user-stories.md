@@ -47,7 +47,35 @@ As a user, I want to add, view, and filter tasks by custom tags, so that I can c
 **Acceptance Criteria:**
 - Users can attach one or more tags (e.g., `work`, `urgent`) when creating or updating a task.
 - Tags are visually displayed alongside each task in the list.
-- Users can click or filter by a specific tag to view only related tasks. 
+- Users can click or filter by a specific tag to view only related tasks.
+
+
+  ## Feature: Overdue Filtering
+
+### User Story
+**As a** busy user managing multiple deadlines,  
+**I want to** filter my tasks to show only those that are overdue,  
+**So that** I can quickly identify and focus on urgent tasks that missed their due date.
+
+### Acceptance Criteria
+- A filter option or button for "Overdue" is visible on the main task view.
+- When activated, the list filters to display only tasks whose due date is in the past and are not marked as completed.
+- If there are no overdue tasks, a clear indicator/message (e.g., "No overdue tasks") is displayed.
+
+---
+
+## Feature: Task Tags & Categorization
+
+### User Story
+**As a** user organizing diverse projects,  
+**I want to** assign custom tags to my tasks and filter tasks by specific tags,  
+**So that** I can group, categorize, and locate related items efficiently across different categories.
+
+### Acceptance Criteria
+- Users can create and attach one or more tags to a task during task creation or editing.
+- Applied tags are visibly displayed on each task item/card in the list.
+- Users can click a tag or select a tag filter to view only tasks associated with that specific tag.
+- Users can edit or remove tags from an existing task.
 
 ### Feature 2: Overdue Status Tracking
 - **User Story:** As a user, I want to filter tasks that are past their due date so that I can focus on overdue items.

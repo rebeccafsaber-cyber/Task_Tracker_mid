@@ -26,6 +26,28 @@
 - **User Story:** As a user, I want to filter my tasks by specific tags so that I can view only the tasks relevant to a specific context.
 - **Acceptance Criteria:**
   - Sending `GET /tasks?tag=work` returns only tasks containing "work" in their `tags` list.
+ 
+## Feature 5: Overdue Filtering
+
+**User Story:**
+As a user, I want to filter my task list to display only overdue tasks, so that I can quickly identify and address missed deadlines.
+
+**Acceptance Criteria:**
+- The system provides a filter option for "Overdue" tasks.
+- When selected, only tasks with a due date in the past and a status other than "Completed" are displayed.
+- If no tasks are overdue, an empty state message is shown.
+
+---
+
+## Feature 6: Tags Management
+
+**User Story:**
+As a user, I want to add, view, and filter tasks by custom tags, so that I can categorize and organize my workload effectively.
+
+**Acceptance Criteria:**
+- Users can attach one or more tags (e.g., `work`, `urgent`) when creating or updating a task.
+- Tags are visually displayed alongside each task in the list.
+- Users can click or filter by a specific tag to view only related tasks. 
 
 ### Feature 2: Overdue Status Tracking
 - **User Story:** As a user, I want to filter tasks that are past their due date so that I can focus on overdue items.

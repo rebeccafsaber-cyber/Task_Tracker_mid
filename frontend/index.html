@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -35,7 +36,7 @@
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
             margin-bottom: 20px;
         }
-        form input, form textarea, form button {
+        form input, form textarea, form select, form button {
             width: 100%;
             padding: 10px;
             margin-bottom: 10px;
@@ -53,6 +54,25 @@
         form button:hover {
             background-color: var(--primary-hover);
         }
+        .filter-section {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .filter-section input[type="text"] {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+        }
+        .filter-section label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-weight: 600;
+            cursor: pointer;
+        }
         ul {
             list-style: none;
             padding: 0;
@@ -66,14 +86,43 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 15px;
         }
         .task-info h3 {
             margin: 0 0 5px 0;
         }
         .task-info p {
-            margin: 0;
+            margin: 3px 0;
             color: #64748b;
             font-size: 14px;
+        }
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            background-color: #e2e8f0;
+            color: #334155;
+            margin-right: 4px;
+        }
+        .status-badge {
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 11px;
+            padding: 3px 6px;
+            border-radius: 4px;
+            background: #e0e7ff;
+            color: #3730a3;
+        }
+        .actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .actions select {
+            padding: 6px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
         }
         .delete-btn {
             background-color: #ef4444;
@@ -98,9 +147,33 @@
             <form id="taskForm">
                 <input type="text" id="title" placeholder="Task Title" required>
                 <textarea id="description" placeholder="Task Description" rows="2"></textarea>
-                <input type="date" id="dueDate" required>
+                <input type="date" id="dueDate">
+                
+                <!-- Status Dropdown -->
+                <select id="statusSelect">
+                    <option value="todo">To Do</option>
+                    <option value="in_progress">In Progress</option>
+                    <option value="done">Done</option>
+                    <option value="canceled">Canceled</option>
+                </select>
+
+                <!-- Tag Input -->
+                <input type="text" id="tagsInput" placeholder="Tags (comma separated, e.g. Work, Urgent)">
+
                 <button type="submit">Add Task</button>
             </form>
+        </div>
+
+        <!-- Filter Controls (Tag & Overdue) -->
+        <div class="card">
+            <h3>Filters</h3>
+            <div class="filter-section">
+                <input type="text" id="filterTag" placeholder="Filter by tag (e.g. work)..." oninput="fetchTasks()">
+                <label>
+                    <input type="checkbox" id="filterOverdue" onchange="fetchTasks()">
+                    Show Overdue Only
+                </label>
+            </div>
         </div>
 
         <!-- Task List -->
@@ -117,19 +190,42 @@
 
         async function fetchTasks() {
             try {
-                const response = await fetch(`${API_URL}/tasks/`);
+                const tagFilter = document.getElementById("filterTag").value.trim();
+                const overdueFilter = document.getElementById("filterOverdue").checked;
+
+                let url = new URL(`${API_URL}/tasks/`);
+                if (tagFilter) url.searchParams.append("tag", tagFilter);
+                if (overdueFilter) url.searchParams.append("overdue", "true");
+
+                const response = await fetch(url);
                 const tasks = await response.json();
                 const taskList = document.getElementById("taskList");
                 taskList.innerHTML = "";
 
                 tasks.forEach(task => {
                     const li = document.createElement("li");
+                    
+                    const tagsHTML = (task.tags && task.tags.length > 0) 
+                        ? task.tags.map(t => `<span class="badge">#${t}</span>`).join(" ")
+                        : '<span class="badge">No tags</span>';
+
+                    const taskNotes = task.notes || task.description || 'No description';
+
                     li.innerHTML = `
                         <div class="task-info">
-                            <h3>${task.title}</h3>
-                            <p>${task.description || 'No description'} - <strong>Due:</strong> ${task.due_date || 'N/A'}</p>
+                            <h3>${task.title} <span class="status-badge">${task.status}</span></h3>
+                            <p>${taskNotes} - <strong>Due:</strong> ${task.due_date || 'N/A'}</p>
+                            <div><strong>Tags:</strong> ${tagsHTML}</div>
                         </div>
-                        <button class="delete-btn" onclick="deleteTask(${task.id})">Delete</button>
+                        <div class="actions">
+                            <select onchange="updateTaskStatus(${task.id}, this.value, '${task.title}', '${taskNotes.replace(/'/g, "\\'")}', '${task.due_date}', ${JSON.stringify(task.tags || [])})">
+                                <option value="todo" ${task.status === 'todo' ? 'selected' : ''}>todo</option>
+                                <option value="in_progress" ${task.status === 'in_progress' ? 'selected' : ''}>in_progress</option>
+                                <option value="done" ${task.status === 'done' ? 'selected' : ''}>done</option>
+                                <option value="canceled" ${task.status === 'canceled' ? 'selected' : ''}>canceled</option>
+                            </select>
+                            <button class="delete-btn" onclick="deleteTask(${task.id})">Delete</button>
+                        </div>
                     `;
                     taskList.appendChild(li);
                 });
@@ -142,25 +238,63 @@
             e.preventDefault();
             const title = document.getElementById("title").value;
             const description = document.getElementById("description").value;
-            const due_date = document.getElementById("dueDate").value;
+            const due_date = document.getElementById("dueDate").value || null;
+            const status = document.getElementById("statusSelect").value;
+            
+            const rawTags = document.getElementById("tagsInput").value;
+            const tags = rawTags ? rawTags.split(",").map(t => t.trim()).filter(t => t.length > 0) : [];
 
             try {
                 const response = await fetch(`${API_URL}/tasks/`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ title, description, due_date })
+                    body: JSON.stringify({ 
+                        title, 
+                        description, 
+                        due_date, 
+                        status, 
+                        tags 
+                    })
                 });
 
                 if (response.ok) {
                     document.getElementById("taskForm").reset();
                     fetchTasks();
                 } else {
-                    alert("Failed to create task");
+                    const errData = await response.json();
+                    alert("Failed to create task: " + (errData.detail || "Unknown error"));
                 }
             } catch (error) {
                 console.error("Error creating task:", error);
             }
         });
+
+        async function updateTaskStatus(id, newStatus, title, notes, dueDate, tags) {
+            try {
+                const response = await fetch(`${API_URL}/tasks/${id}`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        id: id,
+                        title: title,
+                        notes: notes,
+                        status: newStatus,
+                        due_date: dueDate !== "null" ? dueDate : null,
+                        tags: tags
+                    })
+                });
+
+                if (response.ok) {
+                    fetchTasks();
+                } else {
+                    const errData = await response.json();
+                    alert("Status change failed: " + (errData.detail || "Invalid transition"));
+                    fetchTasks();
+                }
+            } catch (error) {
+                console.error("Error updating task status:", error);
+            }
+        }
 
         async function deleteTask(id) {
             try {

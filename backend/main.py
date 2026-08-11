@@ -41,7 +41,7 @@ class TodoItem(BaseModel):
     tags: List[str] = Field(default_factory=list)
 
 
-# نموذج لاستقبال بيانات إنشاء تاسك جديد (بدون الحاجة لـ ID إجباري)
+#
 class TaskCreate(BaseModel):
     title: str
     description: Optional[str] = None
@@ -79,9 +79,12 @@ def fetch_tasks(overdue: Optional[bool] = None, tag: Optional[str] = None):
                 if not t.due_date or t.due_date >= current_date or t.status == TaskStatus.DONE
             ]
 
+    # (Case-insensitive)
     if tag:
+        search_tag = tag.strip().lower()
         filtered_list = [
-            t for t in filtered_list if tag in t.tags
+            t for t in filtered_list 
+            if any(search_tag == t_tag.lower() for t_tag in t.tags)
         ]
 
     return filtered_list
@@ -90,10 +93,10 @@ def fetch_tasks(overdue: Optional[bool] = None, tag: Optional[str] = None):
 @app.post("/tasks", response_model=TodoItem, status_code=201)
 @app.post("/tasks/", response_model=TodoItem, status_code=201)
 def add_task(task_in: TaskCreate):
-    # إنشاء ID تلقائياً
+    # make ID
     new_id = len(storage_db) + 1 if not storage_db else max(t.id for t in storage_db) + 1
 
-    # تحويل الوصف
+    # 
     task_notes = task_in.notes or task_in.description
 
     new_task = TodoItem(

@@ -1,141 +1,43 @@
 
-from datetime import date
-from enum import Enum
+from fastapi import FastAPI, HTTPException, status
+from pydantic import BaseModel
 from typing import List, Optional
-from fastapi import FastAPI, HTTPException, Query
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field
 
-app = FastAPI(title="Task Management API")
+app = FastAPI(title="Task Tracker API", version="1.0.0")
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-
-class TaskStatus(str, Enum):
-    TODO = "todo"
-    IN_PROGRESS = "in_progress"
-    DONE = "done"
-    CANCELED = "canceled"
-
-
-ALLOWED_TRANSITIONS = {
-    TaskStatus.TODO: [TaskStatus.IN_PROGRESS, TaskStatus.CANCELED],
-    TaskStatus.IN_PROGRESS: [TaskStatus.DONE, TaskStatus.TODO, TaskStatus.CANCELED],
-    TaskStatus.DONE: [TaskStatus.IN_PROGRESS],
-    TaskStatus.CANCELED: [TaskStatus.TODO],
-}
-
-
-class TodoItem(BaseModel):
-    id: int
-    title: str
-    notes: Optional[str] = None
-    status: TaskStatus = TaskStatus.TODO
-    due_date: Optional[date] = None
-    tags: List[str] = Field(default_factory=list)
-
-
-# نموذج لاستقبال بيانات إنشاء تاسك جديد (بدون الحاجة لـ ID إجباري)
-class TaskCreate(BaseModel):
+class TaskItem(BaseModel):
+    id: Optional[int] = None
     title: str
     description: Optional[str] = None
-    notes: Optional[str] = None
-    status: TaskStatus = TaskStatus.TODO
-    due_date: Optional[date] = None
-    tags: List[str] = Field(default_factory=list)
+    completed: bool = False
 
+tasks_db: List[TaskItem] = []
+counter: int = 0
 
-storage_db: List[TodoItem] = []
+@app.get("/tasks", response_model=List[TaskItem])
+def get_all_tasks():
+    return tasks_db
 
+@app.post("/tasks", response_model=TaskItem, status_code=status.HTTP_201_CREATED)
+def create_new_task(task: TaskItem):
+    global counter
+    counter += 1
+    task.id = counter
+    tasks_db.append(task)
+    return task
 
-@app.get("/")
-def home():
-    return {"message": "Welcome to the Task Management API"}
-
-
-@app.get("/tasks", response_model=List[TodoItem])
-@app.get("/tasks/", response_model=List[TodoItem])
-def fetch_tasks(overdue: Optional[bool] = None, tag: Optional[str] = None):
-    filtered_list = storage_db
-    current_date = date.today()
-
-    if overdue is not None:
-        if overdue:
-            filtered_list = [
-                t
-                for t in filtered_list
-                if t.due_date and t.due_date < current_date and t.status != TaskStatus.DONE
-            ]
-        else:
-            filtered_list = [
-                t
-                for t in filtered_list
-                if not t.due_date or t.due_date >= current_date or t.status == TaskStatus.DONE
-            ]
-
-    if tag:
-        filtered_list = [
-            t for t in filtered_list if tag in t.tags
-        ]
-
-    return filtered_list
-
-
-@app.post("/tasks", response_model=TodoItem, status_code=201)
-@app.post("/tasks/", response_model=TodoItem, status_code=201)
-def add_task(task_in: TaskCreate):
-    # إنشاء ID تلقائياً
-    new_id = len(storage_db) + 1 if not storage_db else max(t.id for t in storage_db) + 1
-
-    # تحويل الوصف
-    task_notes = task_in.notes or task_in.description
-
-    new_task = TodoItem(
-        id=new_id,
-        title=task_in.title,
-        notes=task_notes,
-        status=task_in.status,
-        due_date=task_in.due_date,
-        tags=task_in.tags
-    )
-
-    storage_db.append(new_task)
-    return new_task
-
-
-@app.put("/tasks/{task_id}", response_model=TodoItem)
-@app.put("/tasks/{task_id}/", response_model=TodoItem)
-def modify_task(task_id: int, updated_task: TodoItem):
-    for position, item in enumerate(storage_db):
-        if item.id == task_id:
-            current_status = item.status
-            new_status = updated_task.status
-
-            if current_status != new_status:
-                allowed_next = ALLOWED_TRANSITIONS.get(current_status, [])
-                if new_status not in allowed_next:
-                    raise HTTPException(
-                        status_code=400,
-                        detail=f"Cannot transition status from '{current_status.value}' to '{new_status.value}'"
-                    )
-
-            storage_db[position] = updated_task
-            return updated_task
-
+@app.get("/tasks/{task_id}", response_model=TaskItem)
+def get_task_by_id(task_id: int):
+    for t in tasks_db:
+        if t.id == task_id:
+            return t
     raise HTTPException(status_code=404, detail="Task not found")
 
-
-@app.delete("/tasks/{task_id}")
-@app.delete("/tasks/{task_id}/")
+@app.delete("/tasks/{task_id}", status_code=status.HTTP_204_NO_CONTENT)
 def remove_task(task_id: int):
-    for position, item in enumerate(storage_db):
-        if item.id == task_id:
-            storage_db.pop(position)
-            return {"message": "Task successfully removed"}
+    global tasks_db
+    for index, t in enumerate(tasks_db):
+        if t.id == task_id:
+            tasks_db.pop(index)
+            return
     raise HTTPException(status_code=404, detail="Task not found")

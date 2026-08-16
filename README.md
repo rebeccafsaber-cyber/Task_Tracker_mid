@@ -1,17 +1,15 @@
+## Final Project
 
-# Task Tracker Microservice
+### Overview
+This repository contains the complete implementation for the FastAPI Task Tracker project submission.
 
-## Introduction
-The Task Tracker Microservice is a high-performance backend application designed for managing tasks efficiently[span_0](start_span)[span_0](end_span). Built using modern asynchronous frameworks, it offers reliable performance and easy integration[span_1](start_span)[span_1](end_span).
+### Key Features
+- Full CRUD task operations with auto-incrementing IDs.
+- Advanced query filtering by `tag` and `overdue_only` status.
+- Pydantic schema validation including `status`, `tags`, and `due_date`.
+- Complete automated unit testing suite using `pytest` verifying all endpoints (including root `/`).
 
-## Features
-- Full CRUD operations for task management.
-- Built-in data validation using Pydantic[span_2](start_span)[span_2](end_span).
-- Automated CI/CD pipeline integration via GitHub Actions.
-- Docker support for containerized deployments.
-
-## Quick Start
-1. Clone the repository and navigate to the project directory.
-2. Install dependencies listed in the configuration[span_3](start_span)[span_3](end_span):
+### How to Run & Test
+1. Install dependencies:
    ```bash
-   pip install -r requirements.txt
+   pip install -r backend/requirements.txt

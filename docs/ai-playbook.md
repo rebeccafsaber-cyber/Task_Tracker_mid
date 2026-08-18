@@ -1,14 +1,34 @@
 
 # AI Playbook
 
-## Rules & Decision Cards
+## When I reach for AI first
+- Generating boilerplate Python code for FastAPI schemas and Pytest test structures.
+- Writing initial documentation, docstrings, and markdown logs.
+- Explaining complex error stack traces during Pytest failures or dependency issues.
 
-### Rule 1: Schema Consistency
-Always ensure that Pydantic response models (`TaskSchema`) mirror all required task fields: `id`, `title`, `description`, `status`, `tags`, `due_date`, and `completed`.
+## When I do not reach for AI first
+- Designing overall core system architecture and database relationships.
+- Writing critical security configurations and CORS policies.
+- Defining project boundaries and business logic rules.
 
-### Rule 2: Test Alignment
-Every endpoint defined in `backend/main.py` must have an associated test case in the test suite ensuring expected HTTP status codes (e.g., 200 OK, 201 Created, 204 No Content).
+## My non-negotiables
+- Never paste raw production secrets, credentials, or `.env` contents into AI models.
+- All AI-generated code must be manually reviewed and tested locally before committing.
+- Do not accept AI suggestions that bypass existing unit tests or security standards.
 
-### Decision Card: Overdue Filtering Logic
-- **Condition**: Task has a defined `due_date`, the date is prior to the current date, and `completed` is `False`.
-- **Action**: Include task in results when `overdue_only=true` query parameter is supplied.
+## My review rules
+- Line-by-line check on all imports and logic changes proposed by AI.
+- Validate that suggested code adheres strictly to Python/FastAPI best practices.
+- Run `pytest` locally to confirm 100% test pass rate after applying any AI code.
+
+## What I am still figuring out
+- Optimizing prompt engineering strategies for complex edge-case bug resolution.
+- Balancing automated AI security scanning tools with manual security auditing.
+
+## Decision Card
+- **New Feature:** Use GitHub Copilot / ChatGPT to outline schemas and generate initial unit tests.
+- **Code Review:** Use AI for syntax checks and formatting, followed by manual logic verification.
+- **Debugging:** Paste non-sensitive stack traces into AI to diagnose FastAPI or Pytest errors.
+- **Infrastructure:** Use AI to draft basic Dockerfile and GitHub Actions workflow templates.
+- **Never-Paste:** API Keys, passwords, database URLs, `.env` files, and private identity data.
+- **Rule:** Every line of AI code must be tested via local Pytest before merging into the main repository.

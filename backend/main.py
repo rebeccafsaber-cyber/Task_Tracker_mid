@@ -21,6 +21,10 @@ auto_increment_id: int = 0
 def read_root():
     return {"message": "Welcome to Task Management API"}
 
+@app.get("/health", status_code=status.HTTP_200_OK)
+def health_check():
+    return {"status": "healthy"}
+
 @app.get("/tasks", response_model=List[TaskSchema])
 def fetch_all_tasks(
     tag: Optional[str] = Query(None, description="Filter tasks by tag"),

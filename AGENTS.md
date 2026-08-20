@@ -1,32 +1,18 @@
 # Autonomous Agents Configuration - Task Tracker
 
 ## Agent Definitions
-The following module handles the automated task management logic and background workflows. These agents are designed to decouple task processing from the main HTTP API.
 
-### 1. Task Scheduler Agent
-- **Responsibility**: Manages temporal task events and lifecycle status updates.
-- **Trigger**: Cron-based interval (every 60s).
-- **Implementation**: Uses standard `asyncio` loops to poll `tasks_db`.
+The following guidelines govern AI usage and automated code generation for the Task Tracker microservice.
 
-### 2. Workflow Automation Agent
-- **Responsibility**: Executes automated validation checks upon task completion.
-- **Trigger**: Event-driven (on `POST /tasks`).
-- **Implementation**: FastAPI background tasks integration.
+### 1. Development & Refactoring Agent
+- **Responsibility:** Assists with generating FastAPI endpoints, Pydantic schemas, and Pytest coverage within `backend/`.
+- **Constraints:** Must not invent external files or dependencies. All code generated must be fully compatible with Python 3.9 and FastAPI standards.
 
-## Configuration Parameters
-Agents operate based on the following environment variable set:
+### 2. Testing & Quality Guardrail Agent
+- **Responsibility:** Verifies endpoint validity, handles status code assertions, and runs `flake8` linting checks.
+- **Constraints:** Ensures all test functions remain synchronous where applicable and covers both success and edge cases (e.g., HTTP 404 responses).
 
-| Parameter | Default Value | Description |
-| :--- | :--- | :--- |
-| `AGENT_SYNC_INTERVAL` | `60` | Frequency of status updates in seconds. |
-| `RETRY_ATTEMPTS` | `3` | Number of retries for failed task syncs. |
-| `LOG_LEVEL` | `INFO` | Verbosity of the agent activity logs. |
-
-## Operational Protocol
-To initialize the autonomous background processes:
-1. Ensure `asyncio` is imported in `main.py`.
-2. Register background workers via `app.add_event_handler("startup", start_agents)`.
-3. Monitor logs under `/var/log/task_tracker/agents.log`.
-
----
-*System Architecture Documentation | Confidential*
+## Non-Negotiable Development Rules
+- Every endpoint added to `backend/main.py` must have an associated test in `tests/`.
+- No hardcoded credentials, secret keys, or unconfigured middleware are allowed.
+- AI-generated responses must accurately reflect existing repository structure.

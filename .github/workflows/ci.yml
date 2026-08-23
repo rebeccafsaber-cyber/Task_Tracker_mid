@@ -36,4 +36,4 @@ jobs:
 
       - name: Execute Pytest Suite
         run: |
-          python -m pytest tests/ --verbose || python -m pytest backend/tests/ --verbose || true
+          python -m pytest tests/ --verbose || python -m pytest backend/tests/ --verbose 

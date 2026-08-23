@@ -61,7 +61,7 @@ def fetch_task_by_id(task_id: int):
 
 @app.delete("/tasks/{task_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_task_by_id(task_id: int):
-    global storage
+    
     target_index = next((idx for idx, item in enumerate(storage) if item.id == task_id), None)
     if target_index is None:
         raise HTTPException(status_code=404, detail="Task not found")

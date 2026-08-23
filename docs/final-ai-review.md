@@ -30,3 +30,13 @@
   ```python
   # Safe implementation
   tags_list: List[str] = [tag.strip() for tag in tags.split(",") if tag.strip()]
+  
+## Three AI usage rules
+
+1. AI was used as an assistant for code refactoring, test script creation, and debugging syntax issues.
+2. All AI-generated outputs and suggestions were code-reviewed, tested locally, and validated before merging.
+3. AI tools were not used to bypass core assignment requirements or avoid understanding the implementation details.
+
+## Ownership statement
+
+I confirm that I am the sole owner and primary author of this submission. I have fully reviewed, understood, and validated all components, code, and documentation within this project repository.

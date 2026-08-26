@@ -24,12 +24,15 @@
 - Verified Docker execution runs as a non-root user (`appuser`).
 
 ## Rejected / Corrected AI Output Example
-- **Original AI Suggestion:** AI suggested using `eval()` to dynamically parse tag filter strings from incoming request parameters.
-- **Why It Was Rejected:** Using `eval()` introduces severe Remote Code Execution (RCE) vulnerabilities.
-- **Corrected Code Implemented:** Replaced with explicit list parsing and Pydantic field validation:
-  ```python
-  # Safe implementation
-  tags_list: List[str] = [tag.strip() for tag in tags.split(",") if tag.strip()]
+- **Original AI Suggestion:** AI suggested creating an overly complex helper function with custom regex parsing for incoming JSON request payloads.
+- **Why It Was Rejected:** Unnecessary complexity and prone to edge-case parsing bugs when Pydantic handles payload validation natively.
+- **Corrected Code Implemented:** Utilized native FastAPI Pydantic request models (`TaskSchema`) to automatically parse and validate incoming JSON payloads.
+
+```python
+# Safe implementation directly in backend/main.py
+@app.post("/tasks", response_model=TaskResponse)
+def create_task(task: TaskSchema):
+    return task_service.create(task)
   
 ## Three AI usage rules
 

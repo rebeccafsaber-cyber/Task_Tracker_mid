@@ -1,10 +1,11 @@
+
 # Final AI Code Review & Security Audit Report
 
 ## 1. AI Review Comments
 
-* Comment 1: Advised introducing the PATCH protocol for partial resource updates rather than rewriting entire objects.
+* Comment 1: Advised replacing direct array indexing with safe index lookup and enumeration for task operations.
   * Classification: Useful
-  * Reason: Adheres to RESTful design principles and avoids accidentally overwriting fields that weren't submitted in backend/main.py.
+  * Reason: Prevents runtime index errors and ensures proper item lookup before modification or removal in backend/main.py.
 * Comment 2: Proposed integrating a Redis caching layer for simple retrieval operations.
   * Classification: Noise
   * Reason: Unnecessary over-engineering for a compact project scope where the local memory list (tasks_db) performs adequately.
@@ -34,7 +35,7 @@
 ## 4. Rejected or Corrected AI Suggestion
 
 * Suggestion: The model recommended utilizing raw global list mutation inside route functions without checking matching indices.
-  * Action Taken: Rejected and updated to employ safe index enumeration (enumerate(tasks_db)) inside patch_task and delete_task within backend/main.py to prevent synchronization errors and race conditions.
+  * Action Taken: Rejected and updated to employ safe index enumeration (enumerate(storage)) inside delete_task_by_id within backend/main.py to prevent synchronization errors, race conditions, and unhandled runtime exceptions.
 
 ## 5. AI Usage Rules & Decision Card Scenarios
 
@@ -55,4 +56,4 @@
 
 ## 6. Ownership Statement
 
-I, Rebecca Saber, conceptualized, developed, and thoroughly tested the Task Tracker codebase included in this repository. I have personally verified all automated test scripts, container specifications, and execution pipelines. Every single line of code and accompanying documentation piece has been meticulously reviewed, verified, and fully comprehended by me.
+I, Rebecca Saber, conceptualized, developed, and thoroughly tested the Task Tracker codebase included in this repository. I have personally verified all automated test scripts, container specifications, and execution pipelines.
